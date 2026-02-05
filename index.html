@@ -11,12 +11,14 @@
       <aside class="sidebar">
         <h1>SNotes</h1>
         <button id="newCardBtn" class="primary">+ New Card (N)</button>
+
         <div class="section">
           <label>Search</label>
           <input id="searchInput" placeholder="Search cards, tags, content..." />
         </div>
+
         <div class="section">
-          <label>Filters</label>
+          <label>Views</label>
           <div class="toggle-list">
             <button class="chip active" data-filter="all">All</button>
             <button class="chip" data-filter="pinned">Pinned</button>
@@ -24,16 +26,41 @@
             <button class="chip" data-filter="trash">Trash</button>
           </div>
         </div>
+
         <div class="section">
           <label>Tags</label>
           <div id="tagFilters" class="tag-cloud"></div>
         </div>
-        <div class="section">
-          <label>Theme</label>
-          <button id="themeBtn" class="secondary">Toggle Theme</button>
-        </div>
+
+        <details class="section" open>
+          <summary>Settings</summary>
+          <label for="themeSelect">Theme</label>
+          <select id="themeSelect">
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+
+          <label for="layoutSelect">Feed layout</label>
+          <select id="layoutSelect">
+            <option value="wide">Wide cards</option>
+            <option value="grid">Grid cards</option>
+          </select>
+
+          <label for="densitySelect">Density</label>
+          <select id="densitySelect">
+            <option value="comfortable">Comfortable</option>
+            <option value="compact">Compact</option>
+          </select>
+
+          <label class="checkbox">
+            <input id="previewToggle" type="checkbox" checked />
+            Live markdown preview
+          </label>
+        </details>
+
         <p class="help">
-          Shortcuts: <b>N</b> new, <b>/</b> focus search, <b>Ctrl/Cmd+S</b> save, <b>Ctrl/Cmd+K</b> command palette.
+          Shortcuts: <b>N</b> new, <b>/</b> search, <b>Ctrl/Cmd+S</b> save, <b>Ctrl/Cmd+K</b> command palette.
         </p>
       </aside>
 
@@ -42,7 +69,9 @@
           <h2 id="viewTitle">All Cards</h2>
           <button id="commandBtn" class="secondary">Command Palette</button>
         </header>
-        <section id="cardsGrid" class="cards-grid"></section>
+        <section id="cardsGrid" class="cards-grid wide"></section>
+        <div id="feedStatus" class="feed-status"></div>
+        <div id="feedSentinel" class="feed-sentinel"></div>
       </main>
     </div>
 
@@ -56,17 +85,20 @@
             <button type="button" id="trashBtn" class="ghost danger">Trash</button>
           </div>
         </header>
+
         <label>Title</label>
         <input id="titleInput" required />
+
         <label>Tags (comma separated)</label>
         <input id="tagsInput" placeholder="work, project, idea" />
+
         <label>Card Body (Markdown + [[Backlinks]])</label>
         <textarea id="contentInput" rows="12" required></textarea>
 
-        <details>
-          <summary>Live Preview</summary>
+        <section id="previewSection" class="preview-wrap">
+          <h4>Live Preview</h4>
           <article id="previewPane" class="preview"></article>
-        </details>
+        </section>
 
         <footer>
           <button type="button" id="deleteBtn" class="danger">Delete Permanently</button>

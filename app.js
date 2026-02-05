@@ -1,5 +1,6 @@
-const STORAGE_KEY = 'snotes.cards.v1';
-const THEME_KEY = 'snotes.theme';
+const STORAGE_KEY = 'snotes.cards.v2';
+const SETTINGS_KEY = 'snotes.settings.v1';
+const PAGE_SIZE = 15;
 
 const state = {
   cards: [],
@@ -7,6 +8,13 @@ const state = {
   search: '',
   tagFilter: '',
   editingId: null,
+  visibleCount: PAGE_SIZE,
+  settings: {
+    theme: 'system',
+    layout: 'wide',
+    density: 'comfortable',
+    livePreview: true,
+  },
 };
 
 const els = {
@@ -16,7 +24,13 @@ const els = {
   searchInput: document.getElementById('searchInput'),
   tagFilters: document.getElementById('tagFilters'),
   viewTitle: document.getElementById('viewTitle'),
-  themeBtn: document.getElementById('themeBtn'),
+  feedStatus: document.getElementById('feedStatus'),
+  feedSentinel: document.getElementById('feedSentinel'),
+
+  themeSelect: document.getElementById('themeSelect'),
+  layoutSelect: document.getElementById('layoutSelect'),
+  densitySelect: document.getElementById('densitySelect'),
+  previewToggle: document.getElementById('previewToggle'),
 
   editorDialog: document.getElementById('editorDialog'),
   editorTitle: document.getElementById('editorTitle'),
@@ -24,6 +38,7 @@ const els = {
   titleInput: document.getElementById('titleInput'),
   tagsInput: document.getElementById('tagsInput'),
   contentInput: document.getElementById('contentInput'),
+  previewSection: document.getElementById('previewSection'),
   previewPane: document.getElementById('previewPane'),
   pinBtn: document.getElementById('pinBtn'),
   archiveBtn: document.getElementById('archiveBtn'),
@@ -37,28 +52,38 @@ const els = {
   commandList: document.getElementById('commandList'),
 };
 
+let feedObserver;
+
 const COMMANDS = [
   { name: 'New card', run: () => openEditor() },
   { name: 'Show all cards', run: () => setFilter('all') },
-  { name: 'Show pinned', run: () => setFilter('pinned') },
-  { name: 'Show archived', run: () => setFilter('archived') },
+  { name: 'Show pinned cards', run: () => setFilter('pinned') },
+  { name: 'Show archived cards', run: () => setFilter('archived') },
   { name: 'Show trash', run: () => setFilter('trash') },
-  { name: 'Toggle theme', run: () => toggleTheme() },
+  { name: 'Switch to wide feed', run: () => setLayout('wide') },
+  { name: 'Switch to grid feed', run: () => setLayout('grid') },
+  { name: 'Theme: dark', run: () => setTheme('dark') },
+  { name: 'Theme: light', run: () => setTheme('light') },
+  { name: 'Theme: system', run: () => setTheme('system') },
 ];
 
 init();
 
 function init() {
   loadCards();
-  loadTheme();
+  loadSettings();
   bindEvents();
+  applySettings();
+  setupInfiniteFeed();
   render();
 }
 
 function bindEvents() {
   els.newCardBtn.addEventListener('click', () => openEditor());
+
   els.searchInput.addEventListener('input', (e) => {
     state.search = e.target.value.toLowerCase();
+    resetFeed();
     render();
   });
 
@@ -66,12 +91,21 @@ function bindEvents() {
     btn.addEventListener('click', () => setFilter(btn.dataset.filter));
   });
 
-  els.themeBtn.addEventListener('click', toggleTheme);
+  els.themeSelect.addEventListener('change', (e) => setTheme(e.target.value));
+  els.layoutSelect.addEventListener('change', (e) => setLayout(e.target.value));
+  els.densitySelect.addEventListener('change', (e) => setDensity(e.target.value));
+  els.previewToggle.addEventListener('change', (e) => {
+    state.settings.livePreview = e.target.checked;
+    persistSettings();
+    applySettings();
+    updatePreview();
+  });
 
   els.editorForm.addEventListener('submit', (e) => {
     e.preventDefault();
     saveCard();
   });
+
   els.contentInput.addEventListener('input', updatePreview);
   els.cancelBtn.addEventListener('click', () => els.editorDialog.close());
   els.deleteBtn.addEventListener('click', permanentlyDeleteEditingCard);
@@ -100,8 +134,22 @@ function bindEvents() {
   });
 }
 
+function setupInfiniteFeed() {
+  feedObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const total = getVisibleCards().length;
+      if (state.visibleCount < total) {
+        state.visibleCount += PAGE_SIZE;
+        renderCards();
+      }
+    });
+  }, { rootMargin: '500px' });
+  feedObserver.observe(els.feedSentinel);
+}
+
 function isTyping(target) {
-  return ['INPUT', 'TEXTAREA'].includes(target.tagName);
+  return ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
 }
 
 function openEditor(id = null) {
@@ -129,8 +177,8 @@ function mutateEditingCard(mutator) {
   if (!card) return;
   mutator(card);
   card.updatedAt = new Date().toISOString();
-  setEditorButtonStates(card);
   persistAndRender();
+  setEditorButtonStates(card);
 }
 
 function saveCard() {
@@ -157,6 +205,7 @@ function saveCard() {
   }
 
   persistAndRender();
+  resetFeed();
   els.editorDialog.close();
 }
 
@@ -164,6 +213,7 @@ function permanentlyDeleteEditingCard() {
   if (!state.editingId) return;
   state.cards = state.cards.filter((c) => c.id !== state.editingId);
   persistAndRender();
+  resetFeed();
   els.editorDialog.close();
 }
 
@@ -199,17 +249,20 @@ function render() {
 
 function renderCards() {
   const visible = getVisibleCards();
+  const items = visible.slice(0, state.visibleCount);
   els.cardsGrid.innerHTML = '';
+
   if (!visible.length) {
     els.cardsGrid.innerHTML = `<p>No cards found. Create one with <b>New Card</b>.</p>`;
+    els.feedStatus.textContent = '';
     return;
   }
 
-  for (const card of visible) {
+  items.forEach((card) => {
     const node = els.cardTemplate.content.cloneNode(true);
     const article = node.querySelector('.card');
     node.querySelector('h3').textContent = card.title;
-    node.querySelector('.excerpt').textContent = card.content.slice(0, 180);
+    node.querySelector('.excerpt').textContent = card.content.slice(0, 360);
 
     const statusIcons = node.querySelector('.status-icons');
     statusIcons.textContent = `${card.pinned ? '📌' : ''}${card.archived ? '🗄️' : ''}${card.trashed ? '🗑️' : ''}`;
@@ -226,14 +279,17 @@ function renderCards() {
     if (backlinks.length) {
       const b = document.createElement('span');
       b.className = 'tag';
-      b.textContent = `↩ ${backlinks.length} backlink${backlinks.length > 1 ? 's' : ''}`;
+      b.textContent = `↩ ${backlinks.length}`;
       tagsContainer.appendChild(b);
     }
 
     node.querySelector('.updated').textContent = new Date(card.updatedAt).toLocaleString();
     article.addEventListener('click', () => openEditor(card.id));
     els.cardsGrid.appendChild(node);
-  }
+  });
+
+  const remaining = Math.max(visible.length - items.length, 0);
+  els.feedStatus.textContent = remaining ? `Scroll for ${remaining} more cards...` : `Showing all ${visible.length} cards.`;
 }
 
 function getBacklinks(title) {
@@ -244,11 +300,13 @@ function getBacklinks(title) {
 function renderTagFilters() {
   const tags = [...new Set(state.cards.flatMap((c) => c.tags))].sort();
   els.tagFilters.innerHTML = '';
+
   const clear = document.createElement('button');
   clear.className = `chip ${state.tagFilter ? '' : 'active'}`;
   clear.textContent = 'Any';
   clear.onclick = () => {
     state.tagFilter = '';
+    resetFeed();
     render();
   };
   els.tagFilters.appendChild(clear);
@@ -259,6 +317,7 @@ function renderTagFilters() {
     button.textContent = `#${tag}`;
     button.onclick = () => {
       state.tagFilter = state.tagFilter === tag ? '' : tag;
+      resetFeed();
       render();
     };
     els.tagFilters.appendChild(button);
@@ -274,23 +333,54 @@ function updateFilterButtons() {
 
 function setFilter(filter) {
   state.filter = filter;
+  resetFeed();
   render();
 }
 
+function resetFeed() {
+  state.visibleCount = PAGE_SIZE;
+}
+
 function markdown(input) {
-  return input
-    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-    .replace(/\*\*(.*?)\*\*/gim, '<b>$1</b>')
-    .replace(/\*(.*?)\*/gim, '<i>$1</i>')
-    .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank">$1</a>')
-    .replace(/\n/g, '<br />');
+  let out = escapeHtml(input);
+
+  out = out.replace(/^```([\s\S]*?)```$/gm, '<pre><code>$1</code></pre>');
+  out = out.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+  out = out.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+  out = out.replace(/^# (.*)$/gm, '<h1>$1</h1>');
+  out = out.replace(/^> (.*)$/gm, '<blockquote>$1</blockquote>');
+  out = out.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  out = out.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
+  out = out.replace(/\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+  out = out.replace(/(^|\n)- (.*?)(?=\n|$)/g, '$1<li>$2</li>');
+  out = out.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+  out = out.replace(/\n\n+/g, '</p><p>');
+  out = `<p>${out}</p>`;
+  out = out.replace(/<p><h([1-3])>/g, '<h$1>').replace(/<\/h([1-3])><\/p>/g, '</h$1>');
+  out = out.replace(/<p><blockquote>/g, '<blockquote>').replace(/<\/blockquote><\/p>/g, '</blockquote>');
+  out = out.replace(/<p><pre>/g, '<pre>').replace(/<\/pre><\/p>/g, '</pre>');
+  out = out.replace(/<p><ul>/g, '<ul>').replace(/<\/ul><\/p>/g, '</ul>');
+  out = out.replace(/\n/g, '<br>');
+
+  return out;
+}
+
+function escapeHtml(str) {
+  return str
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 }
 
 function updatePreview() {
+  els.previewSection.style.display = state.settings.livePreview ? 'block' : 'none';
+  if (!state.settings.livePreview) return;
   const content = els.contentInput.value;
-  const linked = content.replace(/\[\[(.*?)\]\]/g, (_, title) => `<span class="tag">↗ ${title}</span>`);
+  const linked = content.replace(/\[\[(.*?)\]\]/g, (_, title) => `**↗ ${title}**`);
   els.previewPane.innerHTML = markdown(linked);
 }
 
@@ -299,37 +389,79 @@ function persistAndRender() {
   render();
 }
 
+function persistSettings() {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
+}
+
 function loadCards() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (raw) {
     state.cards = JSON.parse(raw);
     return;
   }
-  const demoNow = new Date().toISOString();
-  state.cards = [
-    {
+
+  const now = Date.now();
+  state.cards = Array.from({ length: 70 }).map((_, i) => {
+    const date = new Date(now - i * 1000 * 60 * 60).toISOString();
+    return {
       id: crypto.randomUUID(),
-      title: 'Welcome to SNotes',
-      content: 'Use #tags, markdown, and [[Welcome to SNotes]] style backlinks.\n\nTry Command Palette for quick actions.',
-      tags: ['welcome', 'guide'],
-      pinned: true,
+      title: i === 0 ? 'Welcome to SNotes' : `Card ${i + 1}`,
+      content:
+        i === 0
+          ? 'This is your wide-card infinite feed.\n\nUse **markdown**, #tags, and [[Welcome to SNotes]] backlinks.'
+          : `## Note ${i + 1}\n- item one\n- item two\n\nReference [[Welcome to SNotes]]`,
+      tags: i % 2 ? ['notes', 'daily'] : ['ideas', 'work'],
+      pinned: i === 0,
       archived: false,
       trashed: false,
-      createdAt: demoNow,
-      updatedAt: demoNow,
-    },
-  ];
+      createdAt: date,
+      updatedAt: date,
+    };
+  });
 }
 
-function toggleTheme() {
-  document.body.classList.toggle('dark');
-  localStorage.setItem(THEME_KEY, document.body.classList.contains('dark') ? 'dark' : 'light');
+function loadSettings() {
+  const raw = localStorage.getItem(SETTINGS_KEY);
+  if (!raw) return;
+  const parsed = JSON.parse(raw);
+  state.settings = { ...state.settings, ...parsed };
 }
 
-function loadTheme() {
-  if (localStorage.getItem(THEME_KEY) === 'dark') {
-    document.body.classList.add('dark');
-  }
+function applySettings() {
+  els.themeSelect.value = state.settings.theme;
+  els.layoutSelect.value = state.settings.layout;
+  els.densitySelect.value = state.settings.density;
+  els.previewToggle.checked = state.settings.livePreview;
+
+  document.body.classList.toggle('compact', state.settings.density === 'compact');
+  els.cardsGrid.classList.toggle('wide', state.settings.layout === 'wide');
+  els.cardsGrid.classList.toggle('grid', state.settings.layout === 'grid');
+
+  applyTheme();
+}
+
+function applyTheme() {
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const dark = state.settings.theme === 'dark' || (state.settings.theme === 'system' && prefersDark);
+  document.body.classList.toggle('dark', dark);
+}
+
+function setTheme(value) {
+  state.settings.theme = value;
+  persistSettings();
+  applySettings();
+}
+
+function setLayout(value) {
+  state.settings.layout = value;
+  persistSettings();
+  applySettings();
+}
+
+function setDensity(value) {
+  state.settings.density = value;
+  persistSettings();
+  applySettings();
 }
 
 function openCommandPalette() {
