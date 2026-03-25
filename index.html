@@ -953,7 +953,7 @@
                     <div class="note-body">${note.html}</div>
                     ${note.tags.length ? `
                         <div class="note-footer">
-                            ${note.tags.map(t => `<span class="inline-tag">#${t}</span>`).join('')}
+                            ${note.tags.map(t => `<span class="inline-tag">${t}</span>`).join('')}
                         </div>
                     ` : ''}
                 </div>
