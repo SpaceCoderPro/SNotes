@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNotes - Personal Markdown Feed</title>
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    <!-- Highlight.js for code syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #fdfdfd;
+            --sidebar-bg: #ffffff;
+            --text-color: #2c3e50;
+            --muted-text: #95a5a6;
+            --accent-color: #3498db;
+            --border-color: #f0f0f0;
+            --shadow-subtle: 0 4px 6px rgba(0,0,0,0.02), 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-hover: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.03);
+            --soft-blue: #ebf5fb;
+            --soft-gray: #f9f9f9;
+            --danger-color: #e74c3c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        aside {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            z-index: 10;
+        }
+
+        .logo {
+            font-weight: 600;
+            font-size: 1.25rem;
+            margin-bottom: 32px;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        /* Calendar Styles */
+        .calendar-container {
+            margin-bottom: 24px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .calendar-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted-text);
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .calendar-nav button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--muted-text);
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .calendar-nav button:hover {
+            background-color: var(--soft-gray);
+            color: var(--accent-color);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            text-align: center;
+        }
+
+        .weekday {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #bdc3c7;
+            padding-bottom: 8px;
+        }
+
+        .day {
+            font-size: 0.8rem;
+            padding: 8px 0;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            position: relative;
+            color: #7f8c8d;
+        }
+
+        .day:hover {
+            background-color: var(--soft-gray);
+            color: var(--text-color);
+        }
+
+        .day.today {
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .day.selected {
+            background-color: var(--accent-color) !important;
+            color: white !important;
+        }
+
+        .day.has-note::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 3px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+        }
+
+        .day.selected.has-note::after {
+            background-color: white;
+        }
+
+        .day.other-month {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        .day.other-month:hover {
+            background: none;
+        }
+
+        .filter-info {
+            margin-top: auto;
+            padding: 16px;
+            background-color: var(--soft-blue);
+            border-radius: 12px;
+            font-size: 0.8rem;
+            display: none;
+            color: var(--accent-color);
+            line-height: 1.5;
+        }
+
+        .filter-info.active {
+            display: block;
+        }
+
+        .clear-filter {
+            color: var(--accent-color);
+            text-decoration: none;
+            cursor: pointer;
+            margin-top: 8px;
+            display: block;
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        .clear-filter:hover {
+            opacity: 1;
+        }
+
+        /* Main Content Styles */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Entry Area Styles */
+        .entry-section {
+            padding: 24px 40px;
+            background-color: white;
+            border-bottom: 1px solid var(--border-color);
+            z-index: 5;
+        }
+
+        .entry-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .split-editor {
+            display: flex;
+            gap: 24px;
+            min-height: 160px;
+        }
+
+        .editor-wrapper, .preview-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--muted-text);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        textarea {
+            width: 100%;
+            flex: 1;
+            padding: 16px;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            background-color: var(--soft-gray);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            transition: all 0.2s;
+            color: var(--text-color);
+        }
+
+        textarea:focus {
+            background-color: white;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px var(--soft-blue);
+        }
+
+        .live-preview {
+            flex: 1;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background-color: white;
+            overflow-y: auto;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            max-height: 300px;
+        }
+
+        .entry-hint {
+            font-size: 0.7rem;
+            color: var(--muted-text);
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+        }
+
+        .entry-hint strong {
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        /* Feed Styles */
+        .feed-section {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+        }
+
+        .feed-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .note-card {
+            background-color: white;
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-subtle);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .note-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .note-date {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--muted-text);
+            background-color: var(--soft-gray);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .note-actions {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .note-card:hover .note-actions {
+            opacity: 1;
+        }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #bdc3c7;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .btn-delete:hover {
+            color: var(--danger-color);
+        }
+
+        .note-content {
+            line-height: 1.8;
+            font-size: 1rem;
+            color: #34495e;
+        }
+
+        /* Markdown Styles */
+        .note-content h1, .live-preview h1 { font-size: 1.5rem; margin: 1.5rem 0 0.75rem; font-weight: 600; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+        .note-content h2, .live-preview h2 { font-size: 1.25rem; margin: 1.25rem 0 0.75rem; font-weight: 600; }
+        .note-content h3, .live-preview h3 { font-size: 1.1rem; margin: 1.1rem 0 0.75rem; font-weight: 600; }
+        .note-content p, .live-preview p { margin-bottom: 1.25rem; }
+        .note-content ul, .note-content ol, .live-preview ul, .live-preview ol { margin-bottom: 1.25rem; padding-left: 1.5rem; }
+        .note-content li, .live-preview li { margin-bottom: 0.5rem; }
+        .note-content code, .live-preview code { font-family: 'JetBrains Mono', monospace; background-color: var(--soft-gray); padding: 2px 6px; border-radius: 4px; font-size: 0.85em; color: var(--danger-color); }
+        .note-content pre code, .live-preview pre code { color: inherit; background-color: transparent; padding: 0; }
+        .note-content pre, .live-preview pre { background-color: #f8f9fa; padding: 1.25rem; border-radius: 12px; overflow-x: auto; margin-bottom: 1.25rem; border: 1px solid var(--border-color); }
+        .note-content blockquote, .live-preview blockquote { border-left: 4px solid var(--accent-color); padding: 0.5rem 0 0.5rem 1.25rem; font-style: italic; color: #7f8c8d; margin: 1.5rem 0; background-color: var(--soft-gray); border-radius: 0 8px 8px 0; }
+        .note-content table, .live-preview table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.9rem; }
+        .note-content th, .note-content td, .live-preview th, .live-preview td { border: 1px solid var(--border-color); padding: 12px; text-align: left; }
+        .note-content th, .live-preview th { background-color: var(--soft-gray); font-weight: 600; }
+        .note-content hr, .live-preview hr { border: 0; border-top: 2px solid var(--border-color); margin: 2rem 0; }
+        .note-content a, .live-preview a { color: var(--accent-color); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+        .note-content a:hover, .live-preview a:hover { border-bottom-color: var(--accent-color); }
+        .note-content img, .live-preview img { max-width: 100%; height: auto; border-radius: 12px; margin: 1rem 0; }
+
+        /* Scrollbar Styles */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d0d0d0; }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            color: var(--muted-text);
+            background-color: white;
+            border-radius: 20px;
+            border: 2px dashed var(--border-color);
+        }
+
+        @media (max-width: 900px) {
+            aside { width: 240px; padding: 20px; }
+            .entry-section { padding: 20px; }
+            .feed-section { padding: 20px; }
+        }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow-y: auto; height: auto; }
+            aside { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); }
+            main { height: auto; flex: none; }
+            .feed-section { height: auto; overflow: visible; }
+            .split-editor { flex-direction: column; }
+            .live-preview { max-height: 200px; }
+        }
+    </style>
+</head>
+<body>
+    <aside>
+        <div class="logo">
+            <span style="font-size: 1.5rem;">📓</span> SNotes
+        </div>
+
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <div class="calendar-title" id="currentMonthYear">---</div>
+                <div class="calendar-nav">
+                    <button id="prevMonth" title="Previous Month">←</button>
+                    <button id="nextMonth" title="Next Month">→</button>
+                </div>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Days will be generated here -->
+            </div>
+        </div>
+
+        <div class="filter-info" id="filterInfo">
+            Filtering by: <strong id="filterDateDisplay">--</strong>
+            <span class="clear-filter" id="clearFilter">✕ Clear filter</span>
+        </div>
+    </aside>
+
+    <main>
+        <section class="entry-section">
+            <div class="entry-container">
+                <div class="split-editor">
+                    <div class="editor-wrapper">
+                        <div class="label">New Note</div>
+                        <textarea id="noteInput" placeholder="What's on your mind? (Markdown supported)"></textarea>
+                    </div>
+                    <div class="preview-wrapper">
+                        <div class="label">Live Preview</div>
+                        <div id="livePreview" class="live-preview"></div>
+                    </div>
+                </div>
+                <div class="entry-hint">
+                    <span><strong>Shift + Enter</strong> for new line</span>
+                    <span><strong>Enter</strong> to create note</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="feed-section">
+            <div class="feed-container" id="notesFeed">
+                <!-- Notes will be rendered here -->
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // --- Configuration & Initialization ---
+        
+        // Custom renderer for marked to handle some specific needs if any
+        const renderer = new marked.Renderer();
+        
+        marked.setOptions({
+            renderer: renderer,
+            highlight: function(code, lang) {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                return hljs.highlight(code, { language }).value;
+            },
+            langPrefix: 'hljs language-', // highlight.js expects this
+            breaks: true,
+            gfm: true
+        });
+
+        const STORAGE_KEY = 'snotes_v1_data';
+        let notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        let currentFilterDate = null; // format: dd-mm-yy
+        let calendarDate = new Date(); // Date used for calendar navigation
+
+        const noteInput = document.getElementById('noteInput');
+        const livePreview = document.getElementById('livePreview');
+        const notesFeed = document.getElementById('notesFeed');
+        const calendarGrid = document.getElementById('calendarGrid');
+        const currentMonthYear = document.getElementById('currentMonthYear');
+        const filterInfo = document.getElementById('filterInfo');
+        const filterDateDisplay = document.getElementById('filterDateDisplay');
+        const clearFilterBtn = document.getElementById('clearFilter');
+
+        // --- Utility Functions ---
+
+        function formatDate(date) {
+            const d = new Date(date);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = String(d.getFullYear()).slice(-2);
+            return `${day}-${month}-${year}`;
+        }
+
+        function saveNotes() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+            renderCalendar();
+        }
+
+        // --- Note Management ---
+
+        function addNote(content) {
+            const trimmed = content.trim();
+            if (!trimmed) return;
+
+            const now = new Date();
+            const timestamp = now.getTime();
+            const dateStr = formatDate(now);
+            
+            const newNote = {
+                id: 'note-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+                markdownContent: trimmed,
+                htmlContent: marked.parse(trimmed),
+                timestamp: timestamp,
+                dateKey: dateStr,
+                displayDate: dateStr
+            };
+
+            notes.unshift(newNote);
+            saveNotes();
+            
+            // If we are filtering and the new note is from today, keep the filter or clear it?
+            // Usually user expects to see their new note.
+            if (currentFilterDate && currentFilterDate !== dateStr) {
+                currentFilterDate = null; // Clear filter to show the new note
+            }
+            
+            renderNotes();
+            
+            // Reset input
+            noteInput.value = '';
+            livePreview.innerHTML = '';
+        }
+
+        function deleteNote(id) {
+            // Using a custom confirm or just standard for simplicity in single file
+            if (confirm('Permanently delete this note?')) {
+                notes = notes.filter(n => n.id !== id);
+                saveNotes();
+                renderNotes();
+            }
+        }
+
+        // --- Rendering ---
+
+        function renderNotes() {
+            let filteredNotes = notes;
+            if (currentFilterDate) {
+                filteredNotes = notes.filter(n => n.dateKey === currentFilterDate);
+                filterDateDisplay.textContent = currentFilterDate;
+                filterInfo.classList.add('active');
+            } else {
+                filterInfo.classList.remove('active');
+            }
+
+            if (filteredNotes.length === 0) {
+                notesFeed.innerHTML = `
+                    <div class="empty-state">
+                        <p>${currentFilterDate ? 'No notes found for ' + currentFilterDate : 'Your feed is empty. Write your first note above!'}</p>
+                    </div>`;
+                return;
+            }
+
+            notesFeed.innerHTML = filteredNotes.map(note => `
+                <article class="note-card" data-id="${note.id}">
+                    <div class="note-header">
+                        <span class="note-date">${note.displayDate}</span>
+                        <div class="note-actions">
+                            <button class="btn-delete" onclick="deleteNote('${note.id}')">Delete</button>
+                        </div>
+                    </div>
+                    <div class="note-content">
+                        ${note.htmlContent}
+                    </div>
+                </article>
+            `).join('');
+            
+            // Re-apply highlight to the newly rendered notes
+            notesFeed.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        }
+
+        // --- Calendar Logic ---
+
+        function renderCalendar() {
+            calendarGrid.innerHTML = '';
+            
+            const year = calendarDate.getFullYear();
+            const month = calendarDate.getMonth();
+            
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            currentMonthYear.textContent = `${monthNames[month]} ${year}`;
+
+            // Add weekday headers
+            ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(day => {
+                const dayEl = document.createElement('div');
+                dayEl.classList.add('weekday');
+                dayEl.textContent = day;
+                calendarGrid.appendChild(dayEl);
+            });
+
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // Previous month days placeholder
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.classList.add('day', 'other-month');
+                calendarGrid.appendChild(dayEl);
+            }
+
+            // Current month days
+            const todayKey = formatDate(new Date());
+            const noteDateKeys = new Set(notes.map(n => n.dateKey));
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.classList.add('day');
+                dayEl.textContent = i;
+                
+                const d = new Date(year, month, i);
+                const dateKey = formatDate(d);
+                
+                if (dateKey === todayKey) dayEl.classList.add('today');
+                if (dateKey === currentFilterDate) dayEl.classList.add('selected');
+                if (noteDateKeys.has(dateKey)) dayEl.classList.add('has-note');
+                
+                dayEl.onclick = () => {
+                    if (currentFilterDate === dateKey) {
+                        currentFilterDate = null;
+                    } else {
+                        currentFilterDate = dateKey;
+                    }
+                    renderCalendar();
+                    renderNotes();
+                };
+                
+                calendarGrid.appendChild(dayEl);
+            }
+
+            // Next month days placeholder to complete the grid (optional)
+            const totalCells = firstDayOfMonth + daysInMonth;
+            const remaining = (7 - (totalCells % 7)) % 7;
+            for (let i = 0; i < remaining; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.classList.add('day', 'other-month');
+                calendarGrid.appendChild(dayEl);
+            }
+        }
+
+        // --- Event Listeners ---
+
+        noteInput.addEventListener('input', () => {
+            const content = noteInput.value;
+            if (content.trim()) {
+                livePreview.innerHTML = marked.parse(content);
+                livePreview.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+            } else {
+                livePreview.innerHTML = '';
+            }
+        });
+
+        noteInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                addNote(noteInput.value);
+            }
+        });
+
+        document.getElementById('prevMonth').onclick = () => {
+            calendarDate.setMonth(calendarDate.getMonth() - 1);
+            renderCalendar();
+        };
+
+        document.getElementById('nextMonth').onclick = () => {
+            calendarDate.setMonth(calendarDate.getMonth() + 1);
+            renderCalendar();
+        };
+
+        clearFilterBtn.onclick = () => {
+            currentFilterDate = null;
+            renderCalendar();
+            renderNotes();
+        };
+
+        // --- Initial Load ---
+        renderCalendar();
+        renderNotes();
+
+    </script>
+</body>
+</html>
