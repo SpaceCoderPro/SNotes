@@ -639,6 +639,11 @@
             return [...new Set(matches.map(m => m.slice(1)))].sort();
         };
 
+        const stripTagsFromMarkdown = (text) => {
+            // Remove #tag patterns from markdown content
+            return text.replace(/#([\w/-]+)/g, '').trim();
+        };
+
         const parseTagHierarchy = (tag) => {
             const parts = tag.split('/');
             return {
@@ -833,13 +838,11 @@
 
             const now = new Date();
             const dateKey = formatDate(now);
-            const html = marked.parse(markdown);
             const tags = extractTags(markdown);
 
             const note = {
                 id: 'n-' + Date.now(),
                 markdown: markdown,
-                html: html,
                 timestamp: now.getTime(),
                 dateKey: dateKey,
                 tags: tags,
@@ -866,7 +869,6 @@
 
             const note = state.notes[noteIndex];
             note.markdown = markdown;
-            note.html = marked.parse(markdown);
             note.tags = extractTags(markdown);
 
             saveToLocal();
@@ -950,7 +952,7 @@
                             <button class="action-btn delete" onclick="deleteNote('${note.id}', event)">Delete</button>
                         </div>
                     </div>
-                    <div class="note-body">${note.html}</div>
+                    <div class="note-body">${marked.parse(stripTagsFromMarkdown(note.markdown))}</div>
                     ${note.tags.length ? `
                         <div class="note-footer">
                             ${note.tags.map(t => `<span class="inline-tag">${t}</span>`).join('')}
