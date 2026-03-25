@@ -12,44 +12,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #f9fafb;
-            --sidebar-bg: #ffffff;
-            --text-primary: #111827;
-            --text-secondary: #6b7280;
-            --accent: #10b981;
-            --accent-hover: #059669;
-            --accent-soft: #ecfdf5;
-            --border: #e5e7eb;
-            --card-bg: #ffffff;
-            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            --heat-0: #f3f4f6;
-            --heat-1: #d1fae5;
-            --heat-2: #6ee7b7;
-            --heat-3: #10b981;
-            --tag-bg: #f3f4f6;
-            --tag-text: #4b5563;
-            --selection: #d1fae5;
-            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #111827;
-            --sidebar-bg: #1f2937;
-            --text-primary: #f9fafb;
-            --text-secondary: #9ca3af;
-            --accent: #10b981;
-            --accent-hover: #34d399;
-            --accent-soft: rgba(16, 185, 129, 0.1);
-            --border: #374151;
-            --card-bg: #1f2937;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-            --heat-0: #374151;
-            --heat-1: #064e3b;
-            --heat-2: #059669;
-            --heat-3: #10b981;
-            --tag-bg: #374151;
-            --tag-text: #d1d5db;
-            --selection: #064e3b;
+            --bg-color: #0d1117;
+            --sidebar-bg: #161b22;
+            --card-bg: #161b22;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --accent-hover: #79b8ff;
+            --accent-soft: rgba(88, 166, 255, 0.1);
+            --border: #30363d;
+            --heat-0: #21262d;
+            --heat-1: #0e4429;
+            --heat-2: #006d32;
+            --heat-3: #26a641;
+            --tag-bg: #21262d;
+            --tag-text: #8b949e;
+            --selection: rgba(88, 166, 255, 0.3);
         }
 
         * {
@@ -65,28 +43,26 @@
             display: flex;
             height: 100vh;
             overflow: hidden;
-            transition: background-color 0.3s, color 0.3s;
         }
 
         /* Sidebar */
         aside {
-            width: 320px;
+            width: 280px;
             background-color: var(--sidebar-bg);
-            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            padding: 32px 24px;
+            padding: 16px;
             overflow-y: auto;
             z-index: 10;
         }
 
         .logo {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: 700;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             letter-spacing: -0.025em;
         }
 
@@ -96,25 +72,25 @@
 
         /* Calendar Activity Heatmap */
         .calendar-wrap {
-            margin-bottom: 40px;
+            margin-bottom: 16px;
         }
 
         .calendar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .month-name {
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             font-weight: 600;
             color: var(--text-primary);
         }
 
         .calendar-nav {
             display: flex;
-            gap: 4px;
+            gap: 2px;
         }
 
         .calendar-nav button {
@@ -122,10 +98,9 @@
             border: none;
             color: var(--text-secondary);
             cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 1.1rem;
-            transition: var(--transition);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 1rem;
         }
 
         .calendar-nav button:hover {
@@ -136,41 +111,39 @@
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 6px;
+            gap: 3px;
         }
 
         .calendar-day-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             text-align: center;
             color: var(--text-secondary);
             font-weight: 600;
-            padding-bottom: 8px;
+            padding-bottom: 4px;
             text-transform: uppercase;
         }
 
         .day-cell {
             aspect-ratio: 1;
-            border-radius: 4px;
-            font-size: 0.75rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: var(--transition);
             font-weight: 500;
         }
 
         .day-cell:hover:not(.other-month) {
-            transform: scale(1.1);
-            z-index: 1;
+            outline: 1px solid var(--accent);
         }
 
         .day-cell.selected {
-            box-shadow: 0 0 0 2px var(--accent);
+            outline: 2px solid var(--accent);
         }
 
         .day-cell.other-month {
-            opacity: 0.15;
+            opacity: 0.1;
             cursor: default;
         }
 
@@ -184,100 +157,72 @@
         .heat-2 { background-color: var(--heat-2); color: #fff; }
         .heat-3 { background-color: var(--heat-3); color: #fff; }
 
-        /* Tags List */
+        /* Tags Section */
+        .tags-section {
+            margin-top: 8px;
+        }
+
         .sidebar-section-title {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
             color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
 
         .tags-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            flex: 1;
+            gap: 4px;
         }
 
         .tag-pill {
-            font-size: 0.8125rem;
-            padding: 6px 12px;
-            border-radius: 9999px;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
             background-color: var(--tag-bg);
             color: var(--tag-text);
             cursor: pointer;
-            transition: var(--transition);
             display: flex;
             align-items: center;
-            gap: 6px;
-            border: 1px solid transparent;
+            gap: 4px;
+            border: none;
         }
 
         .tag-pill:hover {
-            border-color: var(--accent);
-            color: var(--accent);
+            background-color: var(--border);
+            color: var(--text-primary);
         }
 
         .tag-pill.active {
             background-color: var(--accent);
-            color: white;
-            border-color: var(--accent);
+            color: #fff;
         }
 
         .tag-count {
-            font-size: 0.7rem;
-            opacity: 0.7;
+            font-size: 0.65rem;
+            opacity: 0.8;
         }
 
-        /* Theme Toggle & Footer */
-        .sidebar-footer {
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        /* Tag Folder Structure */
+        .tag-folder {
+            margin-bottom: 8px;
         }
 
-        .theme-label {
-            font-size: 0.875rem;
-            font-weight: 500;
+        .tag-folder-name {
+            font-size: 0.75rem;
+            font-weight: 600;
             color: var(--text-secondary);
+            margin-bottom: 4px;
+            padding-left: 4px;
         }
 
-        .toggle-switch {
-            width: 44px;
-            height: 22px;
-            background-color: var(--tag-bg);
-            border-radius: 9999px;
-            position: relative;
-            cursor: pointer;
-            transition: var(--transition);
-            border: 1px solid var(--border);
-        }
-
-        .toggle-switch::after {
-            content: '';
-            position: absolute;
-            left: 2px;
-            top: 2px;
-            width: 16px;
-            height: 16px;
-            background-color: white;
-            border-radius: 50%;
-            transition: var(--transition);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-
-        [data-theme="dark"] .toggle-switch {
-            background-color: var(--accent);
-        }
-
-        [data-theme="dark"] .toggle-switch::after {
-            left: 24px;
-            background-color: #f9fafb;
+        .tag-folder-children {
+            padding-left: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
         }
 
         /* Main Content */
@@ -290,21 +235,20 @@
         }
 
         .top-bar {
-            padding: 24px 40px;
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .filter-status {
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             display: flex;
             align-items: center;
-            gap: 8px;
-            color: var(--text-secondary);
+            gap: 6px;
             background: var(--accent-soft);
-            padding: 6px 14px;
-            border-radius: 8px;
+            padding: 4px 10px;
+            border-radius: 6px;
             color: var(--accent);
             font-weight: 500;
         }
@@ -317,31 +261,33 @@
 
         /* Editor Section */
         .editor-section {
-            padding: 0 40px 24px;
-            max-width: 900px;
+            padding: 0 20px 12px;
+            max-width: 800px;
             width: 100%;
             margin: 0 auto;
         }
 
         .editor-card {
             background-color: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            padding: 24px;
-            transition: var(--transition);
+            border-radius: 8px;
+            padding: 12px;
+            position: relative;
         }
 
         #editor {
-            min-height: 120px;
+            width: 100%;
+            min-height: 100px;
             outline: none;
-            font-size: 1.05rem;
-            line-height: 1.6;
+            font-size: 0.95rem;
+            line-height: 1.5;
             color: var(--text-primary);
+            background: transparent;
+            border: none;
+            resize: vertical;
+            font-family: 'JetBrains Mono', monospace;
         }
 
-        #editor:empty::before {
-            content: attr(placeholder);
+        #editor::placeholder {
             color: var(--text-secondary);
             opacity: 0.6;
         }
@@ -349,53 +295,121 @@
         .editor-footer {
             display: flex;
             justify-content: flex-end;
-            margin-top: 16px;
+            gap: 8px;
+            margin-top: 10px;
         }
 
         .btn-primary {
             background-color: var(--accent);
-            color: white;
+            color: #fff;
             border: none;
-            padding: 10px 24px;
-            border-radius: 8px;
+            padding: 6px 16px;
+            border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
             font-family: inherit;
+            font-size: 0.85rem;
         }
 
         .btn-primary:hover {
             background-color: var(--accent-hover);
-            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: var(--tag-bg);
+            color: var(--text-primary);
+            border: none;
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border);
+        }
+
+        .edit-indicator {
+            font-size: 0.75rem;
+            color: var(--accent);
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Tag Autocomplete */
+        .tag-autocomplete {
+            position: absolute;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            min-width: 200px;
+        }
+
+        .tag-autocomplete.active {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.selected {
+            background-color: var(--accent-soft);
+        }
+
+        .autocomplete-folder {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+        }
+
+        .autocomplete-tag {
+            color: var(--accent);
         }
 
         /* Feed Section */
         .feed-wrap {
             flex: 1;
             overflow-y: auto;
-            padding: 0 40px 60px;
+            padding: 0 20px 40px;
             scroll-behavior: smooth;
         }
 
         .feed-inner {
-            max-width: 800px;
+            max-width: 700px;
             width: 100%;
             margin: 0 auto;
         }
 
         .note-item {
             background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 32px;
-            margin-bottom: 24px;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
             position: relative;
-            animation: slideUp 0.4s ease-out;
+            animation: slideUp 0.3s ease-out;
+            cursor: pointer;
+        }
+
+        .note-item:hover {
+            background-color: #1c2128;
         }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -403,21 +417,23 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 10px;
         }
 
         .note-date {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             color: var(--text-secondary);
             background-color: var(--tag-bg);
-            padding: 4px 10px;
-            border-radius: 6px;
+            padding: 2px 8px;
+            border-radius: 4px;
         }
 
         .note-actions {
             opacity: 0;
-            transition: var(--transition);
+            transition: opacity 0.15s;
+            display: flex;
+            gap: 8px;
         }
 
         .note-item:hover .note-actions {
@@ -429,39 +445,55 @@
             border: none;
             color: var(--text-secondary);
             cursor: pointer;
-            padding: 4px;
-            font-size: 0.9rem;
+            padding: 2px 6px;
+            font-size: 0.8rem;
+            border-radius: 4px;
         }
 
         .action-btn:hover {
-            color: #ef4444;
+            background-color: var(--tag-bg);
+            color: var(--text-primary);
+        }
+
+        .action-btn.delete:hover {
+            color: #f85149;
         }
 
         .note-body {
-            line-height: 1.75;
+            line-height: 1.6;
             color: var(--text-primary);
         }
 
         /* Markdown in Body */
-        .note-body h1, #editor h1 { font-size: 1.75rem; margin-bottom: 1rem; font-weight: 700; letter-spacing: -0.02em; }
-        .note-body h2, #editor h2 { font-size: 1.5rem; margin-bottom: 0.75rem; font-weight: 600; }
-        .note-body h3, #editor h3 { font-size: 1.25rem; margin-bottom: 0.5rem; font-weight: 600; }
-        .note-body p, #editor p { margin-bottom: 1.25rem; }
-        .note-body ul, .note-body ol, #editor ul, #editor ol { margin-bottom: 1.25rem; padding-left: 1.5rem; }
-        .note-body blockquote, #editor blockquote { border-left: 4px solid var(--accent); padding: 0.5rem 0 0.5rem 1.5rem; margin: 1.5rem 0; color: var(--text-secondary); font-style: italic; background-color: var(--accent-soft); border-radius: 0 8px 8px 0; }
-        .note-body code, #editor code { font-family: 'JetBrains Mono', monospace; background: var(--tag-bg); padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.9em; }
+        .note-body h1 { font-size: 1.4rem; margin-bottom: 0.75rem; font-weight: 700; letter-spacing: -0.02em; }
+        .note-body h2 { font-size: 1.2rem; margin-bottom: 0.6rem; font-weight: 600; }
+        .note-body h3 { font-size: 1.05rem; margin-bottom: 0.4rem; font-weight: 600; }
+        .note-body p { margin-bottom: 0.75rem; }
+        .note-body ul, .note-body ol { margin-bottom: 0.75rem; padding-left: 1.25rem; }
+        .note-body li { margin-bottom: 0.25rem; }
+        .note-body blockquote { border-left: 3px solid var(--accent); padding: 0.4rem 0 0.4rem 1rem; margin: 0.75rem 0; color: var(--text-secondary); font-style: italic; background-color: var(--accent-soft); border-radius: 0 6px 6px 0; }
+        .note-body code { font-family: 'JetBrains Mono', monospace; background: var(--tag-bg); padding: 0.15em 0.35em; border-radius: 3px; font-size: 0.85em; }
+        .note-body pre { background: var(--tag-bg); padding: 12px; border-radius: 6px; overflow-x: auto; margin-bottom: 0.75rem; }
+        .note-body pre code { background: none; padding: 0; }
+        .note-body strong { font-weight: 600; }
+        .note-body em { font-style: italic; }
+        .note-body a { color: var(--accent); text-decoration: none; }
+        .note-body a:hover { text-decoration: underline; }
 
         .note-footer {
-            margin-top: 20px;
+            margin-top: 12px;
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 4px;
         }
 
         .inline-tag {
-            font-size: 0.75rem;
-            font-weight: 600;
+            font-size: 0.7rem;
+            font-weight: 500;
             color: var(--accent);
+            background-color: var(--accent-soft);
+            padding: 2px 6px;
+            border-radius: 10px;
         }
 
         /* Scrollbar Styling */
@@ -473,25 +505,30 @@
         /* Empty State */
         .empty-state {
             text-align: center;
-            padding: 100px 20px;
+            padding: 60px 20px;
             color: var(--text-secondary);
         }
 
         .empty-state h3 {
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
         }
 
         @media (max-width: 850px) {
             body { flex-direction: column; overflow-y: auto; height: auto; }
-            aside { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 24px; }
+            aside { width: 100%; height: auto; padding: 16px; }
             main { height: auto; flex: none; }
             .feed-wrap { overflow-y: visible; height: auto; }
-            .top-bar, .editor-section, .feed-wrap { padding-left: 20px; padding-right: 20px; }
+            .top-bar, .editor-section, .feed-wrap { padding-left: 16px; padding-right: 16px; }
         }
     </style>
 </head>
-<body data-theme="light">
+<body>
     <aside>
         <div class="logo">
             <span>◆</span> SNotes
@@ -506,7 +543,6 @@
                 </div>
             </div>
             <div class="calendar-grid" id="calendarGrid">
-                <!-- Day labels -->
                 <div class="calendar-day-label">S</div>
                 <div class="calendar-day-label">M</div>
                 <div class="calendar-day-label">T</div>
@@ -514,18 +550,14 @@
                 <div class="calendar-day-label">T</div>
                 <div class="calendar-day-label">F</div>
                 <div class="calendar-day-label">S</div>
-                <!-- Grid content generated by JS -->
             </div>
         </div>
 
-        <div class="sidebar-section-title">Tags</div>
-        <div class="tags-container" id="sidebarTags">
-            <!-- Tags generated by JS -->
-        </div>
-
-        <div class="sidebar-footer">
-            <span class="theme-label">Theme</span>
-            <div class="toggle-switch" id="themeToggle" title="Toggle Light/Dark Theme"></div>
+        <div class="tags-section">
+            <div class="sidebar-section-title">Tags</div>
+            <div class="tags-container" id="sidebarTags">
+                <!-- Tags generated by JS -->
+            </div>
         </div>
     </aside>
 
@@ -535,13 +567,19 @@
                 <span id="filterLabel">Filtering</span>
                 <span class="clear-btn" id="clearFilterBtn" title="Clear Filter">✕</span>
             </div>
-            <div></div> <!-- Spacer -->
+            <div></div>
         </div>
 
         <section class="editor-section">
             <div class="editor-card">
-                <div id="editor" contenteditable="true" placeholder="Type your note... # Header, **Bold**, - List, `Code`" tabindex="1"></div>
+                <textarea id="editor" placeholder="Type your note... Use #tag or #folder/tag for organization"></textarea>
+                <div class="tag-autocomplete" id="tagAutocomplete"></div>
                 <div class="editor-footer">
+                    <span class="edit-indicator" id="editIndicator" style="display: none;">
+                        <span>✎ Editing note</span>
+                        <button class="action-btn" id="cancelEditBtn" style="opacity: 1;">Cancel</button>
+                    </span>
+                    <button class="btn-secondary" id="cancelBtn" style="display: none;">Cancel</button>
                     <button class="btn-primary" id="saveNoteBtn">Create Note</button>
                 </div>
             </div>
@@ -562,12 +600,20 @@
         // --- State Management ---
         const state = {
             notes: JSON.parse(localStorage.getItem('snotes_db')) || [],
-            theme: localStorage.getItem('snotes_theme') || 'light',
             filter: {
-                date: null, // dd-mm-yy
+                date: null,
                 tag: null
             },
-            viewDate: new Date() // For calendar navigation
+            viewDate: new Date(),
+            editMode: {
+                isEditing: false,
+                noteId: null
+            },
+            autocomplete: {
+                active: false,
+                selectedIndex: 0,
+                matches: []
+            }
         };
 
         // --- Config ---
@@ -588,152 +634,281 @@
         };
 
         const extractTags = (text) => {
-            // Get text without HTML tags for regex matching
-            const temp = document.createElement('div');
-            temp.innerHTML = text;
-            const plain = temp.innerText;
-            const matches = plain.match(/#([\w-]+)/g);
+            const matches = text.match(/#([\w/-]+)/g);
             if (!matches) return [];
-            return [...new Set(matches.map(m => m.slice(1)))];
+            return [...new Set(matches.map(m => m.slice(1)))].sort();
+        };
+
+        const parseTagHierarchy = (tag) => {
+            const parts = tag.split('/');
+            return {
+                full: tag,
+                folder: parts.length > 1 ? parts.slice(0, -1).join('/') : null,
+                name: parts[parts.length - 1]
+            };
+        };
+
+        const getAllTags = () => {
+            const allTags = new Set();
+            state.notes.forEach(note => {
+                note.tags.forEach(tag => allTags.add(tag));
+            });
+            return [...allTags].sort();
+        };
+
+        const getTagTree = () => {
+            const tags = getAllTags();
+            const tree = {};
+
+            tags.forEach(tag => {
+                const parts = tag.split('/');
+                let current = tree;
+
+                parts.forEach((part, index) => {
+                    if (!current[part]) {
+                        current[part] = {
+                            _isLeaf: index === parts.length - 1,
+                            _fullPath: parts.slice(0, index + 1).join('/'),
+                            _children: {}
+                        };
+                    }
+                    current = current[part]._children;
+                });
+            });
+
+            return tree;
         };
 
         const saveToLocal = () => {
             localStorage.setItem('snotes_db', JSON.stringify(state.notes));
-            localStorage.setItem('snotes_theme', state.theme);
         };
 
         // --- DOM Elements ---
         const el = {
-            body: document.body,
             editor: document.getElementById('editor'),
             saveBtn: document.getElementById('saveNoteBtn'),
+            cancelBtn: document.getElementById('cancelBtn'),
+            editIndicator: document.getElementById('editIndicator'),
+            cancelEditBtn: document.getElementById('cancelEditBtn'),
             feed: document.getElementById('notesFeed'),
             calendarGrid: document.getElementById('calendarGrid'),
             calendarMonth: document.getElementById('calendarMonth'),
             sidebarTags: document.getElementById('sidebarTags'),
-            themeToggle: document.getElementById('themeToggle'),
             prevBtn: document.getElementById('prevBtn'),
             nextBtn: document.getElementById('nextBtn'),
             filterDisplay: document.getElementById('filterDisplay'),
             filterLabel: document.getElementById('filterLabel'),
-            clearFilterBtn: document.getElementById('clearFilterBtn')
+            clearFilterBtn: document.getElementById('clearFilterBtn'),
+            tagAutocomplete: document.getElementById('tagAutocomplete')
         };
 
-        // --- Live Markdown Editor Logic ---
-        function getCaretOffset(element) {
-            const selection = window.getSelection();
-            if (selection.rangeCount === 0) return 0;
-            const range = selection.getRangeAt(0);
-            const preCaretRange = range.cloneRange();
-            preCaretRange.selectNodeContents(element);
-            preCaretRange.setEnd(range.endContainer, range.endOffset);
-            return preCaretRange.toString().length;
-        }
+        // --- Tag Autocomplete ---
+        const showAutocomplete = (query = '') => {
+            const allTags = getAllTags();
+            const matches = query
+                ? allTags.filter(t => t.toLowerCase().includes(query.toLowerCase()))
+                : allTags;
 
-        function setCaretOffset(element, offset) {
-            let currentOffset = 0;
-            const stack = [element];
-            while (stack.length > 0) {
-                const node = stack.pop();
-                if (node.nodeType === 3) {
-                    const nextOffset = currentOffset + node.length;
-                    if (offset <= nextOffset) {
-                        const range = document.createRange();
-                        const sel = window.getSelection();
-                        range.setStart(node, offset - currentOffset);
-                        range.collapse(true);
-                        sel.removeAllRanges();
-                        sel.addRange(range);
-                        return;
-                    }
-                    currentOffset = nextOffset;
-                } else {
-                    for (let i = node.childNodes.length - 1; i >= 0; i--) {
-                        stack.push(node.childNodes[i]);
-                    }
-                }
+            if (matches.length === 0 && query) {
+                matches.push(query);
             }
-            // End of content fallback
-            const range = document.createRange();
-            const sel = window.getSelection();
-            range.selectNodeContents(element);
-            range.collapse(false);
-            sel.removeAllRanges();
-            sel.addRange(range);
-        }
 
-        const handleEditorInput = (e) => {
-            // Trigger transformation on space or enter
-            if (e.inputType === 'insertText' && (e.data === ' ' || e.data === null)) {
-                applyLiveMarkdown();
-            } else if (e.inputType === 'insertParagraph') {
-                applyLiveMarkdown();
+            state.autocomplete.matches = matches;
+            state.autocomplete.selectedIndex = 0;
+
+            if (matches.length === 0) {
+                hideAutocomplete();
+                return;
             }
+
+            el.tagAutocomplete.innerHTML = matches.map((tag, index) => {
+                const parsed = parseTagHierarchy(tag);
+                const display = parsed.folder
+                    ? `<span class="autocomplete-folder">${parsed.folder}/</span><span class="autocomplete-tag">${parsed.name}</span>`
+                    : `<span class="autocomplete-tag">${tag}</span>`;
+                const isNew = !allTags.includes(tag);
+                const newLabel = isNew ? ' <span style="color: var(--text-secondary); font-size: 0.7rem;">(new)</span>' : '';
+
+                return `<div class="autocomplete-item ${index === 0 ? 'selected' : ''}" data-index="${index}">${display}${newLabel}</div>`;
+            }).join('');
+
+            el.tagAutocomplete.classList.add('active');
+            state.autocomplete.active = true;
+
+            // Position autocomplete below cursor
+            const cursorPosition = el.editor.selectionStart;
+            const textBeforeCursor = el.editor.value.substring(0, cursorPosition);
+            const lines = textBeforeCursor.split('\n');
+            const currentLine = lines[lines.length - 1];
+
+            // Simple positioning - you could make this more sophisticated
+            el.tagAutocomplete.style.top = 'auto';
+            el.tagAutocomplete.style.bottom = '50px';
+            el.tagAutocomplete.style.left = '12px';
         };
 
-        const applyLiveMarkdown = () => {
-            const offset = getCaretOffset(el.editor);
-            const raw = el.editor.innerText;
-            
-            // Simple check to avoid unnecessary re-renders
-            if (!/[#\*`\->]/.test(raw)) return;
-
-            const html = marked.parse(raw);
-            if (el.editor.innerHTML !== html) {
-                el.editor.innerHTML = html;
-                // Attempt to restore caret - might be slightly off due to tag additions
-                // but usually works well for plain text offsets
-                setCaretOffset(el.editor, offset);
-            }
+        const hideAutocomplete = () => {
+            el.tagAutocomplete.classList.remove('active');
+            state.autocomplete.active = false;
         };
 
-        el.editor.addEventListener('input', handleEditorInput);
-        
-        // Handle Enter key for transformation immediately
+        const selectAutocompleteItem = (index) => {
+            const tag = state.autocomplete.matches[index];
+            if (!tag) return;
+
+            const cursorPosition = el.editor.selectionStart;
+            const textBeforeCursor = el.editor.value.substring(0, cursorPosition);
+            const textAfterCursor = el.editor.value.substring(cursorPosition);
+
+            // Find the start of the current #
+            const hashIndex = textBeforeCursor.lastIndexOf('#');
+            const beforeHash = el.editor.value.substring(0, hashIndex);
+
+            el.editor.value = beforeHash + '#' + tag + ' ' + textAfterCursor;
+
+            // Set cursor position after the inserted tag
+            const newCursorPos = hashIndex + tag.length + 2;
+            el.editor.setSelectionRange(newCursorPos, newCursorPos);
+
+            hideAutocomplete();
+            el.editor.focus();
+        };
+
+        // Handle editor input for autocomplete
+        el.editor.addEventListener('input', (e) => {
+            const cursorPosition = el.editor.selectionStart;
+            const textBeforeCursor = el.editor.value.substring(0, cursorPosition);
+
+            // Check if we're typing a tag
+            const hashMatch = textBeforeCursor.match(/#([\w/-]*)$/);
+
+            if (hashMatch) {
+                const query = hashMatch[1];
+                showAutocomplete(query);
+            } else {
+                hideAutocomplete();
+            }
+        });
+
+        // Handle keyboard navigation for autocomplete
         el.editor.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                setTimeout(applyLiveMarkdown, 0);
+            if (!state.autocomplete.active) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                state.autocomplete.selectedIndex = (state.autocomplete.selectedIndex + 1) % state.autocomplete.matches.length;
+                updateAutocompleteSelection();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                state.autocomplete.selectedIndex = (state.autocomplete.selectedIndex - 1 + state.autocomplete.matches.length) % state.autocomplete.matches.length;
+                updateAutocompleteSelection();
+            } else if (e.key === 'Enter' || e.key === 'Tab') {
+                e.preventDefault();
+                selectAutocompleteItem(state.autocomplete.selectedIndex);
+            } else if (e.key === 'Escape') {
+                hideAutocomplete();
+            }
+        });
+
+        const updateAutocompleteSelection = () => {
+            const items = el.tagAutocomplete.querySelectorAll('.autocomplete-item');
+            items.forEach((item, index) => {
+                item.classList.toggle('selected', index === state.autocomplete.selectedIndex);
+            });
+        };
+
+        // Click on autocomplete items
+        el.tagAutocomplete.addEventListener('click', (e) => {
+            const item = e.target.closest('.autocomplete-item');
+            if (item) {
+                const index = parseInt(item.dataset.index);
+                selectAutocompleteItem(index);
             }
         });
 
         // --- CRUD Operations ---
         const createNote = () => {
-            const content = el.editor.innerHTML.trim();
-            const textOnly = el.editor.innerText.trim();
-            
-            if (!textOnly) return;
+            const markdown = el.editor.value.trim();
+            if (!markdown) return;
 
             const now = new Date();
             const dateKey = formatDate(now);
-            
+            const html = marked.parse(markdown);
+            const tags = extractTags(markdown);
+
             const note = {
                 id: 'n-' + Date.now(),
-                content: content,
+                markdown: markdown,
+                html: html,
                 timestamp: now.getTime(),
                 dateKey: dateKey,
-                tags: extractTags(content),
+                tags: tags,
                 displayDate: dateKey
             };
 
             state.notes.unshift(note);
             saveToLocal();
-            
-            // UI Reset
-            el.editor.innerHTML = '';
+
+            el.editor.value = '';
             state.filter.date = null;
             state.filter.tag = null;
-            
+
             renderAll();
-            
-            // Scroll to top of feed
             document.querySelector('.feed-wrap').scrollTop = 0;
         };
 
-        const deleteNote = (id) => {
+        const updateNote = () => {
+            const markdown = el.editor.value.trim();
+            if (!markdown || !state.editMode.isEditing) return;
+
+            const noteIndex = state.notes.findIndex(n => n.id === state.editMode.noteId);
+            if (noteIndex === -1) return;
+
+            const note = state.notes[noteIndex];
+            note.markdown = markdown;
+            note.html = marked.parse(markdown);
+            note.tags = extractTags(markdown);
+
+            saveToLocal();
+            exitEditMode();
+            renderAll();
+        };
+
+        const deleteNote = (id, event) => {
+            if (event) event.stopPropagation();
             if (!confirm('Are you sure you want to delete this note?')) return;
             state.notes = state.notes.filter(n => n.id !== id);
             saveToLocal();
+            if (state.editMode.noteId === id) {
+                exitEditMode();
+            }
             renderAll();
+        };
+
+        const startEditNote = (id) => {
+            const note = state.notes.find(n => n.id === id);
+            if (!note) return;
+
+            state.editMode.isEditing = true;
+            state.editMode.noteId = id;
+
+            el.editor.value = note.markdown;
+            el.saveBtn.textContent = 'Update Note';
+            el.cancelBtn.style.display = 'block';
+            el.editIndicator.style.display = 'flex';
+
+            el.editor.focus();
+            document.querySelector('.feed-wrap').scrollTop = 0;
+        };
+
+        const exitEditMode = () => {
+            state.editMode.isEditing = false;
+            state.editMode.noteId = null;
+
+            el.editor.value = '';
+            el.saveBtn.textContent = 'Create Note';
+            el.cancelBtn.style.display = 'none';
+            el.editIndicator.style.display = 'none';
         };
 
         // --- Rendering Logic ---
@@ -742,16 +917,18 @@
             renderCalendar();
             renderTags();
             updateFilterDisplay();
-            el.body.setAttribute('data-theme', state.theme);
         };
 
         const renderFeed = () => {
             let filtered = state.notes;
-            
+
             if (state.filter.date) {
                 filtered = filtered.filter(n => n.dateKey === state.filter.date);
             } else if (state.filter.tag) {
-                filtered = filtered.filter(n => n.tags.includes(state.filter.tag));
+                filtered = filtered.filter(n => n.tags.some(t => {
+                    // Match exact tag or tag as part of hierarchy
+                    return t === state.filter.tag || t.startsWith(state.filter.tag + '/');
+                }));
             }
 
             if (filtered.length === 0) {
@@ -769,10 +946,11 @@
                     <div class="note-meta">
                         <span class="note-date">${note.displayDate}</span>
                         <div class="note-actions">
-                            <button class="action-btn" onclick="deleteNote('${note.id}')">Delete</button>
+                            <button class="action-btn" onclick="startEditNote('${note.id}')">Edit</button>
+                            <button class="action-btn delete" onclick="deleteNote('${note.id}', event)">Delete</button>
                         </div>
                     </div>
-                    <div class="note-body">${note.content}</div>
+                    <div class="note-body">${note.html}</div>
                     ${note.tags.length ? `
                         <div class="note-footer">
                             ${note.tags.map(t => `<span class="inline-tag">#${t}</span>`).join('')}
@@ -780,11 +958,20 @@
                     ` : ''}
                 </div>
             `).join('');
+
+            // Add click handlers to note items for editing
+            el.feed.querySelectorAll('.note-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    // Don't trigger if clicking on action buttons
+                    if (e.target.closest('.note-actions')) return;
+                    const id = item.dataset.id;
+                    startEditNote(id);
+                });
+            });
         };
 
         const renderCalendar = () => {
             const grid = el.calendarGrid;
-            // Clear existing cells (preserve labels)
             const labels = Array.from(grid.querySelectorAll('.calendar-day-label'));
             grid.innerHTML = '';
             labels.forEach(l => grid.appendChild(l));
@@ -792,31 +979,28 @@
             const year = state.viewDate.getFullYear();
             const month = state.viewDate.getMonth();
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            
+
             el.calendarMonth.textContent = `${monthNames[month]} ${year}`;
 
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const today = formatDate(new Date());
 
-            // Activity data
             const activity = {};
             state.notes.forEach(n => activity[n.dateKey] = (activity[n.dateKey] || 0) + 1);
 
-            // Padding
             for (let i = 0; i < firstDay; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'day-cell other-month';
                 grid.appendChild(cell);
             }
 
-            // Days
             for (let i = 1; i <= daysInMonth; i++) {
                 const cell = document.createElement('div');
                 const date = new Date(year, month, i);
                 const dKey = formatDate(date);
                 const count = activity[dKey] || 0;
-                
+
                 let heat = 'heat-0';
                 if (count >= 6) heat = 'heat-3';
                 else if (count >= 3) heat = 'heat-2';
@@ -824,35 +1008,82 @@
 
                 cell.className = `day-cell ${heat} ${state.filter.date === dKey ? 'selected' : ''} ${today === dKey ? 'today' : ''}`;
                 cell.textContent = i;
-                
+
                 cell.onclick = () => {
                     state.filter.date = (state.filter.date === dKey) ? null : dKey;
                     state.filter.tag = null;
                     renderAll();
                 };
-                
+
                 grid.appendChild(cell);
             }
         };
 
         const renderTags = () => {
-            const counts = {};
-            state.notes.forEach(n => {
-                n.tags.forEach(t => counts[t] = (counts[t] || 0) + 1);
-            });
+            const tags = getAllTags();
 
-            const sorted = Object.keys(counts).sort();
-            
-            if (sorted.length === 0) {
-                el.sidebarTags.innerHTML = '<p style="font-size: 0.8rem; color: var(--text-secondary);">No tags used yet.</p>';
+            if (tags.length === 0) {
+                el.sidebarTags.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-secondary);">No tags yet.</p>';
                 return;
             }
 
-            el.sidebarTags.innerHTML = sorted.map(tag => `
-                <div class="tag-pill ${state.filter.tag === tag ? 'active' : ''}" onclick="filterByTag('${tag}')">
-                    #${tag} <span class="tag-count">${counts[tag]}</span>
-                </div>
-            `).join('');
+            // Group tags by folder
+            const folderGroups = {};
+            const rootTags = [];
+
+            tags.forEach(tag => {
+                const parsed = parseTagHierarchy(tag);
+                if (parsed.folder) {
+                    if (!folderGroups[parsed.folder]) {
+                        folderGroups[parsed.folder] = [];
+                    }
+                    folderGroups[parsed.folder].push(tag);
+                } else {
+                    rootTags.push(tag);
+                    // Check if this is also a parent folder
+                    const childTags = tags.filter(t => t.startsWith(tag + '/'));
+                    if (childTags.length > 0) {
+                        folderGroups[tag] = childTags;
+                    }
+                }
+            });
+
+            let html = '';
+
+            // Render root tags that aren't folders
+            rootTags.forEach(tag => {
+                if (!folderGroups[tag]) {
+                    const count = state.notes.filter(n => n.tags.includes(tag)).length;
+                    html += `
+                        <div class="tag-pill ${state.filter.tag === tag ? 'active' : ''}" onclick="filterByTag('${tag}')">
+                            #${tag} <span class="tag-count">${count}</span>
+                        </div>
+                    `;
+                }
+            });
+
+            // Render folder groups
+            Object.entries(folderGroups).forEach(([folder, folderTags]) => {
+                html += `<div class="tag-folder">`;
+                html += `<div class="tag-folder-name">${folder}</div>`;
+                html += `<div class="tag-folder-children">`;
+
+                folderTags.forEach(tag => {
+                    const parsed = parseTagHierarchy(tag);
+                    const displayName = parsed.name;
+                    const count = state.notes.filter(n => n.tags.includes(tag) || n.tags.some(t => t.startsWith(tag + '/'))).length;
+
+                    html += `
+                        <div class="tag-pill ${state.filter.tag === tag ? 'active' : ''}" onclick="filterByTag('${tag}')">
+                            ${displayName} <span class="tag-count">${count}</span>
+                        </div>
+                    `;
+                });
+
+                html += `</div></div>`;
+            });
+
+            el.sidebarTags.innerHTML = html;
         };
 
         const filterByTag = (tag) => {
@@ -871,13 +1102,16 @@
         };
 
         // --- Event Listeners ---
-        el.saveBtn.onclick = createNote;
-
-        el.themeToggle.onclick = () => {
-            state.theme = state.theme === 'light' ? 'dark' : 'light';
-            saveToLocal();
-            renderAll();
+        el.saveBtn.onclick = () => {
+            if (state.editMode.isEditing) {
+                updateNote();
+            } else {
+                createNote();
+            }
         };
+
+        el.cancelBtn.onclick = exitEditMode;
+        el.cancelEditBtn.onclick = exitEditMode;
 
         el.prevBtn.onclick = () => {
             state.viewDate.setMonth(state.viewDate.getMonth() - 1);
@@ -897,7 +1131,6 @@
 
         // --- Initialize ---
         renderAll();
-
     </script>
 </body>
 </html>
